@@ -1,14 +1,14 @@
 #!/bin/env python3
-import git
+import argparse
 import functools
-import re
-import sys
-from string import Template
-
 import itertools
 import pathlib
-import argparse
+import re
+import sys
 import typing
+from string import Template
+
+import git
 
 
 class ReleaserArgs:
@@ -206,8 +206,11 @@ def release():
     match args.release_type:
         case "major":
             cur_ver.major += 1
+            cur_ver.minor = 0
+            cur_ver.patch = 0
         case "minor":
             cur_ver.minor += 1
+            cur_ver.patch = 0
         case "patch":
             cur_ver.patch += 1
 
@@ -220,12 +223,14 @@ def release():
 
 
 def commit_change(ver: SemanticVersion):
+    args.repo.git.add("--all")
     args.repo.git.commit(
         "--allow-empty",
         "--all",
         m=f"chore: release {ver}",
+        untracked_files="all",
     )
-    args.repo.create_tag(str(ver))
+    args.repo.create_tag(str(ver), message=f"release {ver}")
 
 
 ver = release()
